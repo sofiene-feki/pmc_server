@@ -37,6 +37,7 @@ const productSchema = new mongoose.Schema(
     sizes: [sizeSchema],
     Category: String,
     subCategory: { type: String },
+    ecwidId: { type: Number },
   },
   { timestamps: true }
 );

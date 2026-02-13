@@ -426,13 +426,16 @@ exports.search = async (req, res) => {
     const limit = parseInt(itemsPerPage) || 12;
     const skip = currentPage * limit;
 
-    // Regex search, case-insensitive
-    const searchRegex = new RegExp(query, "i");
+    // Escape special regex characters to prevent crashes and ensure partial matches
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const searchRegex = new RegExp(escapedQuery, "i");
 
     const filter = {
       $or: [
         { Title: searchRegex },
         { Description: searchRegex },
+        { Category: searchRegex },
+        { subCategory: searchRegex },
         { slug: searchRegex },
       ],
     };

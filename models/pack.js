@@ -17,6 +17,7 @@ const PackSchema = new mongoose.Schema(
         alt: { type: String, required: true },
       },
     ],
+    ecwidId: { type: Number },
   },
   { timestamps: true }
 );
