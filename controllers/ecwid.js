@@ -39,6 +39,7 @@ exports.getCategories = async (req, res) => {
   try {
     const { data } = await axios.get(`${ECWID_API_BASE}/categories`, {
       headers: ecwidHeaders,
+      params: { limit: 1000 }
     });
     res.json(data);
   } catch (error) {
@@ -99,5 +100,43 @@ exports.handleWebhook = async (req, res) => {
   } catch (error) {
     console.error("Ecwid Webhook Error:", error.message);
     res.status(500).send("Internal Server Error");
+  }
+};
+exports.createProduct = async (req, res) => {
+  try {
+    const { data } = await axios.post(`${ECWID_API_BASE}/products`, req.body, {
+      headers: ecwidHeaders,
+    });
+    res.status(201).json(data);
+  } catch (error) {
+    console.error("Ecwid createProduct Error:", error.response?.data || error.message);
+    res.status(error.response?.status || 500).json(error.response?.data || { error: "Internal Server Error" });
+  }
+};
+
+exports.updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data } = await axios.put(`${ECWID_API_BASE}/products/${id}`, req.body, {
+      headers: ecwidHeaders,
+      params: req.query,
+    });
+    res.json(data);
+  } catch (error) {
+    console.error("Ecwid updateProduct Error:", error.response?.data || error.message);
+    res.status(error.response?.status || 500).json(error.response?.data || { error: "Internal Server Error" });
+  }
+};
+
+exports.deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data } = await axios.delete(`${ECWID_API_BASE}/products/${id}`, {
+      headers: ecwidHeaders,
+    });
+    res.json(data);
+  } catch (error) {
+    console.error("Ecwid deleteProduct Error:", error.response?.data || error.message);
+    res.status(error.response?.status || 500).json(error.response?.data || { error: "Internal Server Error" });
   }
 };

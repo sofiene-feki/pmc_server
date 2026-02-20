@@ -6,12 +6,19 @@ const {
     getCategories,
     getOrders,
     getProfile,
-    handleWebhook
+    handleWebhook,
+    createProduct,
+    updateProduct,
+    deleteProduct
 } = require("../controllers/ecwid");
+const { protect, restrictTo } = require("../middleware/authMiddleware");
 
 // Product routes
 router.get("/ecwid/products", getProducts);
 router.get("/ecwid/products/:id", getProduct);
+router.post("/ecwid/products", protect, restrictTo("ADMIN"), createProduct);
+router.put("/ecwid/products/:id", protect, restrictTo("ADMIN"), updateProduct);
+router.delete("/ecwid/products/:id", protect, restrictTo("ADMIN"), deleteProduct);
 
 // Category routes
 router.get("/ecwid/categories", getCategories);

@@ -3,32 +3,63 @@ const mongoose = require("mongoose");
 const morgan = require("morgan");
 const cors = require("cors");
 const path = require("path");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const mongoSanitize = require("express-mongo-sanitize");
+const xss = require("xss-clean");
+const cookieParser = require("cookie-parser");
 const robotsRoutes = require("./routes/robots");
+const globalErrorHandler = require("./middleware/errorMiddleware");
+
 require("dotenv").config();
 
 const { readdirSync } = require("fs");
 
-// app
-
 const app = express();
+
+// 1) GLOBAL MIDDLEWARES
+// Implement CORS - MUST BE FIRST to handle preflight OPTIONS
+app.use(cors({
+  origin: process.env.CLIENT_URL || "http://localhost:5173",
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"]
+}));
+
+// Set security HTTP headers
+app.use(helmet());
+
+// Development logging
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+}
+
+// Limit requests from same API
+const limiter = rateLimit({
+  max: 1000, // Increased for dev/test
+  windowMs: 60 * 60 * 1000,
+  message: "Trop de requêtes provenant de cette IP, veuillez réessayer dans une heure !",
+});
+app.use("/api", limiter);
+
+// Body parser, reading data from body into req.body
+app.use(express.json({ limit: "100mb" }));
+app.use(cookieParser());
+
+// Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// Data sanitization against XSS
+app.use(xss());
+
+// Use custom logging for other requests
 app.use((req, res, next) => {
   console.log("👉", req.method, req.originalUrl);
   next();
 });
 
-app.use(express.json({ limit: "100mb" }));
-app.use(cors());
-app.use(morgan("dev"));
-
 // static uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/", robotsRoutes); // serves /robots.txt
-
-// database
-mongoose
-  .connect(process.env.DATA_BASE)
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.error(err));
 
 // load routes dynamically
 readdirSync("./routes").forEach((r) => {
@@ -36,22 +67,26 @@ readdirSync("./routes").forEach((r) => {
   const route = require(routePath);
 
   if (!route || typeof route !== "function") {
-    console.error(
-      `❌ Failed to load route ${r}. Expected a function but got:`,
-      route
-    );
+    console.error(`❌ Failed to load route ${r}. Expected a function but got:`, route);
     return;
   }
 
   // Mount sitemap at root, everything else under /api
   if (r === "sitemap.js") {
     app.use("/", route);
-    console.log(`✅ Route ${r} loaded at /`);
   } else {
     app.use("/api", route);
-    console.log(`✅ Route ${r} loaded at /api`);
   }
 });
+
+// GLOBAL ERROR HANDLER
+app.use(globalErrorHandler);
+
+// database
+mongoose
+  .connect(process.env.DATA_BASE)
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error(err));
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
