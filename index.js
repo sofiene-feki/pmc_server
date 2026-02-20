@@ -22,7 +22,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   "https://dev-env-pmc.netlify.app",
-  "https://pmc-site.netlify.app", // Adding common production pattern
+  "https://pmc-server.onrender.com", // Adding common production pattern
   process.env.CLIENT_URL
 ].filter(Boolean);
 
