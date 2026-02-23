@@ -41,7 +41,12 @@ app.use(cors({
 }));
 
 // Set security HTTP headers
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
 // Development logging
 if (process.env.NODE_ENV === "development") {
