@@ -84,15 +84,17 @@ exports.login = async (req, res, next) => {
             });
         }
 
-        // BYPASS EMAIL VERIFICATION CHECK
-        /*
-        if (!user.isEmailVerified) {
-            return res.status(401).json({
+        // Check if user is active
+        if (user.isActive === false) {
+            return res.status(403).json({
                 status: "fail",
-                message: "Veuillez vérifier votre email avant de vous connecter.",
+                message: "Votre compte a été désactivé. Veuillez contacter l'administrateur.",
             });
         }
-        */
+
+        // Update last login
+        user.lastLogin = Date.now();
+        await user.save({ validateBeforeSave: false });
 
         createSendToken(user, 200, res);
     } catch (err) {

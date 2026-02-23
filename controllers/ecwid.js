@@ -61,6 +61,45 @@ exports.getOrders = async (req, res) => {
   }
 };
 
+exports.getOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data } = await axios.get(`${ECWID_API_BASE}/orders/${id}`, {
+      headers: ecwidHeaders,
+    });
+    res.json(data);
+  } catch (error) {
+    console.error("Ecwid getOrder Error:", error.response?.data || error.message);
+    res.status(error.response?.status || 500).json(error.response?.data || { error: "Internal Server Error" });
+  }
+};
+
+exports.updateOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data } = await axios.put(`${ECWID_API_BASE}/orders/${id}`, req.body, {
+      headers: ecwidHeaders,
+    });
+    res.json(data);
+  } catch (error) {
+    console.error("Ecwid updateOrder Error:", error.response?.data || error.message);
+    res.status(error.response?.status || 500).json(error.response?.data || { error: "Internal Server Error" });
+  }
+};
+
+exports.deleteOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data } = await axios.delete(`${ECWID_API_BASE}/orders/${id}`, {
+      headers: ecwidHeaders,
+    });
+    res.json(data);
+  } catch (error) {
+    console.error("Ecwid deleteOrder Error:", error.response?.data || error.message);
+    res.status(error.response?.status || 500).json(error.response?.data || { error: "Internal Server Error" });
+  }
+};
+
 exports.getProfile = async (req, res) => {
   try {
     const { data } = await axios.get(`${ECWID_API_BASE}/profile`, {

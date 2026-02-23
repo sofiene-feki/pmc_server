@@ -32,6 +32,17 @@ const userSchema = new mongoose.Schema(
             type: Boolean,
             default: true,
         },
+        phoneNumber: {
+            type: String,
+            trim: true,
+        },
+        isActive: {
+            type: Boolean,
+            default: true,
+        },
+        lastLogin: {
+            type: Date,
+        },
         emailVerificationToken: String,
         passwordChangedAt: Date,
         resetPasswordToken: String,

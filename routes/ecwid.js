@@ -5,6 +5,9 @@ const {
     getProduct,
     getCategories,
     getOrders,
+    getOrder,
+    updateOrder,
+    deleteOrder,
     getProfile,
     handleWebhook,
     createProduct,
@@ -24,7 +27,10 @@ router.delete("/ecwid/products/:id", protect, restrictTo("ADMIN"), deleteProduct
 router.get("/ecwid/categories", getCategories);
 
 // Order routes
-router.get("/ecwid/orders", getOrders);
+router.get("/ecwid/orders", protect, restrictTo("ADMIN"), getOrders);
+router.get("/ecwid/orders/:id", protect, restrictTo("ADMIN"), getOrder);
+router.put("/ecwid/orders/:id", protect, restrictTo("ADMIN"), updateOrder);
+router.delete("/ecwid/orders/:id", protect, restrictTo("ADMIN"), deleteOrder);
 
 // Profile route
 router.get("/ecwid/profile", getProfile);

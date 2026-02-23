@@ -84,6 +84,7 @@ app.use("/", robotsRoutes); // serves /robots.txt
 // load routes dynamically
 readdirSync("./routes").forEach((r) => {
   const routePath = path.join(__dirname, "routes", r);
+  console.log(`📡 Loading route: ${r}`);
   const route = require(routePath);
 
   if (!route || typeof route !== "function") {
