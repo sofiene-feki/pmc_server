@@ -2,7 +2,7 @@ const MarketingSpend = require("../models/MarketingSpend");
 
 exports.getAllSpend = async (req, res) => {
     try {
-        const spends = await MarketingSpend.find().sort({ date: -1 });
+        const spends = await MarketingSpend.find().sort({ startDate: -1 });
         res.status(200).json({
             status: "success",
             data: spends,
@@ -17,17 +17,21 @@ exports.getAllSpend = async (req, res) => {
 
 exports.createOrUpdateSpend = async (req, res) => {
     try {
-        const { date, metaAdsSpend, googleAdsSpend, otherSpend, notes } = req.body;
+        const { startDate, endDate, metaAdsSpend, googleAdsSpend, otherSpend, notes } = req.body;
 
-        // Normalize date to start of day
-        const d = new Date(date);
-        d.setHours(0, 0, 0, 0);
+        const sD = new Date(startDate);
+        const eD = new Date(endDate);
+        sD.setHours(0, 0, 0, 0);
+        eD.setHours(23, 59, 59, 999);
 
-        const spend = await MarketingSpend.findOneAndUpdate(
-            { date: d },
-            { metaAdsSpend, googleAdsSpend, otherSpend, notes },
-            { new: true, upsert: true, runValidators: true }
-        );
+        const spend = await MarketingSpend.create({
+            startDate: sD,
+            endDate: eD,
+            metaAdsSpend,
+            googleAdsSpend,
+            otherSpend,
+            notes
+        });
 
         res.status(200).json({
             status: "success",
@@ -43,7 +47,23 @@ exports.createOrUpdateSpend = async (req, res) => {
 
 exports.getSpendStats = async (req, res) => {
     try {
+        const { startDate, endDate } = req.query;
+
+        const filter = {};
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            start.setHours(0, 0, 0, 0);
+            end.setHours(23, 59, 59, 999);
+
+            // Interval logic: records that overlap with the requested period
+            // For simplicity, let's just find records where startDate is within range
+            // or the record covers part of the range.
+            filter.startDate = { $gte: start, $lte: end };
+        }
+
         const stats = await MarketingSpend.aggregate([
+            { $match: filter },
             {
                 $group: {
                     _id: null,

@@ -2,10 +2,13 @@ const mongoose = require("mongoose");
 
 const marketingSpendSchema = new mongoose.Schema(
     {
-        date: {
+        startDate: {
             type: Date,
             required: true,
-            unique: true, // One entry per day or month, let's say day
+        },
+        endDate: {
+            type: Date,
+            required: true,
         },
         metaAdsSpend: {
             type: Number,

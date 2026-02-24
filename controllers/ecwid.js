@@ -48,8 +48,67 @@ exports.getCategories = async (req, res) => {
   }
 };
 
+const fetchAllOrders = async (params) => {
+  const { fetchAll, ...ecwidParams } = params;
+  let allItems = [];
+  let offset = 0;
+  let total = 0;
+  let fetchMore = true;
+
+  console.log(`🚀 [ITERative FETCH] Starting for params: ${JSON.stringify(ecwidParams)}`);
+
+  while (fetchMore) {
+    const currentParams = { ...ecwidParams, offset, limit: 100 };
+    console.log(`📡 [PAGE FETCH] Offset: ${offset}, Limit: 100...`);
+
+    try {
+      const { data } = await axios.get(`${ECWID_API_BASE}/orders`, {
+        headers: ecwidHeaders,
+        params: currentParams,
+      });
+
+      const items = data.items || [];
+      allItems = [...allItems, ...items];
+      total = Number(data.total);
+
+      console.log(`✅ [PAGE FETCH] Got ${items.length} items. Total on server: ${total}. Total collected: ${allItems.length}`);
+
+      if (allItems.length < total && items.length > 0) {
+        offset += items.length;
+      } else {
+        fetchMore = false;
+      }
+    } catch (err) {
+      console.error("❌ [PAGE FETCH] Error:", err.response?.data || err.message);
+      fetchMore = false;
+      throw err;
+    }
+  }
+
+  console.log(`🏁 [ITERATIVE FETCH] Finished. Final count: ${allItems.length}`);
+  return { items: allItems, total, count: allItems.length };
+};
+
 exports.getOrders = async (req, res) => {
   try {
+    const query = req.query || {};
+    const fetchAll = query.fetchAll;
+    const limit = query.limit;
+
+    const isFetchAll = String(fetchAll).toLowerCase() === 'true' ||
+      fetchAll === true ||
+      fetchAll === '1' ||
+      fetchAll === 1 ||
+      !limit ||
+      Number(limit) > 100;
+
+    console.log(`🔍 [GET ORDERS] limit=${limit}, fetchAll=${fetchAll} => isFetchAll=${isFetchAll}`);
+
+    if (isFetchAll) {
+      const data = await fetchAllOrders(query);
+      return res.json(data);
+    }
+
     const { data } = await axios.get(`${ECWID_API_BASE}/orders`, {
       headers: ecwidHeaders,
       params: req.query,
