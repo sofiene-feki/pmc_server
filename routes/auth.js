@@ -6,9 +6,9 @@ const rateLimit = require("express-rate-limit");
 const router = express.Router();
 
 const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10, // limit each IP to 10 requests per windowMs
-    message: "Trop de tentatives. Veuillez réessayer dans 15 minutes.",
+  windowMs: 3 * 60 * 1000, // 15 minutes
+  max: 10, // limit each IP to 10 requests per windowMs
+  message: "Trop de tentatives. Veuillez réessayer dans 15 minutes.",
 });
 
 // ✅ Public Routes
